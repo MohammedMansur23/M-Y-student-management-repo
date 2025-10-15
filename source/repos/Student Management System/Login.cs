@@ -154,12 +154,11 @@ namespace Student_Management_System
         private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             this.Hide();
-            Form1 form1 = new Form1();
-            form1.FormClosed += (s, args) =>
+            using (Register1 Register1 = new Register1())
             {
-                this.Show();
-            };
-            form1.Show();
+                Register1.ShowDialog(); // Modal = blocks until closed 
+            }
+            this.Show();
         }
 
         private void Loginbtn_MouseEnter(object sender, EventArgs e)

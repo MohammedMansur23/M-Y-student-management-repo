@@ -1,14 +1,22 @@
 ﻿using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
-using System.Text.RegularExpressions;
+using System.Drawing;
 using System.Globalization;
-using System.Windows.Forms;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Transactions;
+using System.Windows.Forms;
+using static Student_Management_System.Login;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.StartPanel;
 
 namespace Student_Management_System
 {
-    public partial class Form1 : Form
+    public partial class Register1 : Form
     {
         Dictionary<string, List<string>> facultyDepartments = new Dictionary<string, List<string>>()
         {
@@ -20,18 +28,36 @@ namespace Student_Management_System
             {"Basic Sciences", new List<string>{"Physics","Mathematics","Chemistry","Statistics"}},
             {"Education", new List<string>{"Computer Science Education","Arts Education","Human Kinetics Education","Educational Management"}}
         };
-        public Form1()
+
+        public Register1()
         {
             InitializeComponent();
+        }
+        protected override void WndProc(ref Message m)
+        {
+            const int WM_NCLBUTTONDBLCLK = 0x00A3; // Double-click on title bar
+            const int WM_SYSCOMMAND = 0x0112;
+            const int SC_MOVE = 0xF010; // Move window (dragging)
+            const int SC_MAXIMIZE = 0xF030;
+
+            if (m.Msg == WM_NCLBUTTONDBLCLK) return; // Disable double-click restore
+            if (m.Msg == WM_SYSCOMMAND)
+            {
+                int command = m.WParam.ToInt32() & 0xFFF0;
+                if (command == SC_MOVE || command == SC_MAXIMIZE) return; // Disable drag/maximize
+            }
+
+            base.WndProc(ref m);
         }
 
         string errorr = "⚠ Error!";
         string req = "⚠️ Required!";
         string succ = "✅ Success!";
-        private void Form1_Load(object sender, EventArgs e)
+
+        private void Register1_Load(object sender, EventArgs e)
         {
             department.Enabled = false;
-            faculty.Items.AddRange(facultyDepartments.Keys.ToArray());
+            faculty.Items = (facultyDepartments.Keys.ToArray());
             LoadStudents();
             /* txtFirstName.PlaceholderText = "First";
              txtLastName.PlaceholderText = "Last";
@@ -51,16 +77,19 @@ namespace Student_Management_System
                 da.Fill(dt);
             }
         }
+
         private void txtFirstName_Leave(object sender, EventArgs e)
         {
             TextInfo names1 = CultureInfo.CurrentCulture.TextInfo;
             txtFirstName.Text = names1.ToTitleCase(txtFirstName.Text.ToLower());
         }
+
         private void txtLastName_Leave(object sender, EventArgs e)
         {
             TextInfo names2 = CultureInfo.CurrentCulture.TextInfo;
             txtLastName.Text = names2.ToTitleCase(txtLastName.Text.ToLower());
         }
+
         private void Usernametxt_Leave(object sender, EventArgs e)
         {
             TextInfo usernames = CultureInfo.CurrentCulture.TextInfo;
@@ -244,7 +273,8 @@ namespace Student_Management_System
                 MessageBox.Show("Input an actual Student Number", errorr);
             }
         }
-        private void btnSave_Click(object sender, EventArgs e)
+
+        private void btnRegister_Click(object sender, EventArgs e)
         {
             Database db = new Database();
             using (var conn = db.GetConnection())
@@ -258,14 +288,14 @@ namespace Student_Management_System
                 cmd1.Parameters.AddWithValue("@last", txtLastName.Text);
                 cmd1.Parameters.AddWithValue("@email", txtEmail.Text);
                 cmd1.Parameters.AddWithValue("@phone", txtPhone.Text);
-                cmd1.Parameters.AddWithValue("@dob", dtpDOB.Value.Date);
+                cmd1.Parameters.AddWithValue("@dob", dtpDOB.Content);
                 cmd1.Parameters.AddWithValue("@gender", cmbGender.Text);
                 cmd1.Parameters.AddWithValue("@address", txtAddress.Text);
                 cmd1.Parameters.AddWithValue("@username", Usernametxt.Text);
                 cmd1.Parameters.AddWithValue("@password", passwordtxt.Text);
                 cmd1.Parameters.AddWithValue("@faculty", faculty.Text);
                 cmd1.Parameters.AddWithValue("@department", department.Text);
-                cmd1.Parameters.AddWithValue("@passport", pictureBox1.BackgroundImage);
+                cmd1.Parameters.AddWithValue("@passport", PictureBox1.BackgroundImage);
 
                 string name1 = txtFirstName.Text;
                 string name2 = txtLastName.Text;
@@ -281,7 +311,7 @@ namespace Student_Management_System
                 string email = txtEmail.Text;
                 string emailpattern = @"^[A-Za-z0-9]+@[A-Za-z]+\.[A-Za-z]{2,}$";
 
-                var defaultimage = pictureBox1.BackgroundImage;
+                var defaultimage = PictureBox1.BackgroundImage;
                 if (string.IsNullOrEmpty(txtStudentNumber.Text))
                 {
                     MessageBox.Show("Input your Student ID!", req);
@@ -342,7 +372,7 @@ namespace Student_Management_System
                 {
                     MessageBox.Show("Input an Address!", req);
                 }
-                else if (dtpDOB.Value > DateTime.Today)
+                else if (dtpDOB.Content > DateTime.Today)
                 {
                     MessageBox.Show("Don't choose a Date in the future", errorr);
                 }
@@ -355,8 +385,8 @@ namespace Student_Management_System
                 {
                     MessageBox.Show("Create a password!", req);
                 }
-                
-                else if (pictureBox1.BackgroundImage == defaultimage)
+
+                else if (PictureBox1.BackgroundImage == defaultimage)
                 {
                     MessageBox.Show("Import a Passport", req);
                 }
@@ -371,75 +401,27 @@ namespace Student_Management_System
                     LoadStudents();
                     this.Close();
                 }
-
-
-            }
-        }
-
-        private void studentnumberpanel_MouseClick(object sender, MouseEventArgs e)
-        {
-            txtStudentNumber.Focus();
-        }
-
-        private void firstnamepanel_Click(object sender, EventArgs e)
-        {
-            txtFirstName.Focus();
-        }
-
-        private void lastnamepanel_Click(object sender, EventArgs e)
-        {
-            txtLastName.Focus();
-        }
-
-        private void emailpanel_Click(object sender, EventArgs e)
-        {
-            txtEmail.Focus();
-        }
-
-        private void phonepanel_Click(object sender, EventArgs e)
-        {
-            txtPhone.Focus();
-        }
-
-        private void addresspanel_Click(object sender, EventArgs e)
-        {
-            txtAddress.Focus();
-        }
-
-        private void usernamepanel_Click(object sender, EventArgs e)
-        {
-            Usernametxt.Focus();
-        }
-
-        private void passwordpanel_Click(object sender, EventArgs e)
-        {
-            passwordtxt.Focus();
-        }
-
-        private void phone_KeyPress(object sender, KeyPressEventArgs e)
-        {
-            if (e.KeyChar >= '0' && e.KeyChar <= '9' || e.KeyChar == 8)
-            {
-                e.Handled = false;
-            }
-            else
-            {
-                e.Handled = true;
             }
         }
 
         private void faculty_SelectedIndexChanged(object sender, EventArgs e)
         {
             department.Enabled = true;
-            department.Items.Clear();
+            department.Items = Array.Empty<string>(); ;
             string selectedfaculty = faculty.SelectedItem.ToString();
 
             if (facultyDepartments.ContainsKey(selectedfaculty))
             {
-                department.Items.AddRange(facultyDepartments[selectedfaculty].ToArray());
+                department.Items = (facultyDepartments[selectedfaculty].ToArray());
             }
         }
-        private void pictureBox1_Click(object sender, EventArgs e)
+
+        private void PictureBox1_Load(object sender, EventArgs e)
+        {
+
+        }
+
+        private void PictureBox1_Click(object sender, EventArgs e)
         {
             using (OpenFileDialog ofd = new OpenFileDialog())
             {
@@ -447,14 +429,17 @@ namespace Student_Management_System
                 ofd.Filter = "Image Files|*.jpg;*.jpeg;*.png;*.bmp";
                 if (ofd.ShowDialog() == DialogResult.OK)
                 {
-                    pictureBox1.BackgroundImage = Image.FromFile(ofd.FileName);
-                    pictureBox1.SizeMode = PictureBoxSizeMode.Zoom; // Optional: fit image nicely
+                    PictureBox1.BackgroundImage = Image.FromFile(ofd.FileName);
                 }
             }
+
+        }
+
+        private void txtStudentNumber_ContentChanged(object sender, EventArgs e)
+        {
+
         }
     }
-}
-
     public class Database
     {
         private string connectionString = "Server=localhost;Database=sms_db;Uid=root;Pwd='';";
@@ -464,3 +449,4 @@ namespace Student_Management_System
             return new MySqlConnection(connectionString);
         }
     }
+}
